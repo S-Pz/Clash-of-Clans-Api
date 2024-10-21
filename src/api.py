@@ -40,7 +40,7 @@ def search_for_artist(token, artist_name, track_name):
     encoded_artist = quote(artist_name)
     encoded_track = quote(track_name) if track_name else ""
 
-    query = f"?q=remaster{encoded_track}track{encoded_track}artist{encoded_artist}&type=album"
+    query = f"?q=remaster{encoded_track}track{encoded_track}artist{encoded_artist}&type=artist"
 
     query_url = url + query
     result = get(query_url, headers=headers)
@@ -61,5 +61,5 @@ if __name__ =='__main__':
     with open("Artist_wiz_khalifa.json", "w",encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=4)
 
-    artist_id = result['items']["artists"]['id']
+    artist_id = result['artists']["items"][0]['id']
     print(artist_id)
