@@ -50,7 +50,22 @@ def search_for_artist(token, artist_name, track_name):
     if(len(json_result) == 0):
         print("No artist with this name exits ....")
         return None
+    return json_result
 
+def get_artist(artist_id, token):
+
+    url = f"https://api.spotify.com/v1/artists/" + str(artist_id)
+
+    headers = get_auth_header(token)
+    result = get(url, headers=headers)
+    
+    json_result = json.loads(result.content)
+
+    if(len(json_result) == 0):
+        print("No artist founded .")
+        
+        return None
+    
     return json_result
 
 if __name__ =='__main__':
@@ -58,8 +73,13 @@ if __name__ =='__main__':
     token = get_token()
 
     result = search_for_artist(token, "Wiz khalifa",'')
-    with open("Artist_wiz_khalifa.json", "w",encoding='utf-8') as f:
+    
+    with open(f"Searched_artist_{result['artists']['items'][0]["name"]}.json", "w",encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=4)
 
     artist_id = result['artists']["items"][0]['id']
-    print(artist_id)
+  
+    artist_information = get_artist(artist_id, token)
+
+    with open(f"Artist_{artist_information['name']}_information.json", "w", encoding='utf-8') as f:
+        json.dump(artist_information, f, ensure_ascii=False, indent=4)
