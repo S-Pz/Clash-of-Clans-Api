@@ -1,85 +1,72 @@
-from dotenv import load_dotenv
-from requests import post, get
-from urllib.parse import quote
+import os, requests, json
 
-import os, base64, json
+from dotenv import load_dotenv
+from urllib.parse import quote
 
 load_dotenv()
 
-client_id = os.getenv("CLIENT_ID")
-client_secret = os.getenv("CLIENT_SECRET")
-
-def get_token():
-    auth_string = client_id + ":" + client_secret
-    auth_bytes = auth_string.encode("ascii")
-
-    auth_base64 = str(base64.b64encode(auth_bytes), "ascii")
-
-    url = "https://accounts.spotify.com/api/token"
-
-    headers = {
-        "Authorization": "Basic " + auth_base64,
-        "Content-Type" : "application/x-www-form-urlencoded"
-    }
-
-    data = {"grant_type" : "client_credentials"}
-    result = post(url, headers=headers, data=data)
-    json_result = json.loads(result.content)
-    token = json_result["access_token"]
-
-    return token
+API_TOKEN = os.getenv('API_TOKEN')
 
 def get_auth_header(token):
-  return {"Authorization": "Bearer " + token}
-
-def search_for_artist(token, artist_name, track_name):
   
-    url = "https://api.spotify.com/v1/search"
-    headers = get_auth_header(token)
+  return {
+        "Accept":"application/json",
+        "Authorization": "Bearer " + token
+    }
 
-    encoded_artist = quote(artist_name)
-    encoded_track = quote(track_name) if track_name else ""
+def searh_for_player(token, player_tag):
 
-    query = f"?q=remaster{encoded_track}track{encoded_track}artist{encoded_artist}&type=artist"
+    encoded_player_tag = quote(player_tag) if player_tag else ""
 
-    query_url = url + query
-    result = get(query_url, headers=headers)
-    json_result = json.loads(result.content)
+    url = "https://api.clashofclans.com/v1/players/" + encoded_player_tag
+    header = get_auth_header(token)
 
-    #verifying if exist a artist whitch this name
-    if(len(json_result) == 0):
-        print("No artist with this name exits ....")
+    result = requests.get(url, headers=header)
+
+    json_resul = json.loads(result.content)
+
+    if(len(json_resul) == 0):
+        print("No player founded")
         return None
-    return json_result
 
-def get_artist(artist_id, token):
+    return json_resul
 
-    url = f"https://api.spotify.com/v1/artists/" + str(artist_id)
+def search_for_clans(token, clan_tag):
 
-    headers = get_auth_header(token)
-    result = get(url, headers=headers)
+    encoded_clan_tag = quote(clan_tag) if clan_tag else ""
+    url = "https://api.clashofclans.com/v1/clans/" + encoded_clan_tag
+    header = get_auth_header(token)
+
+    result = requests.get(url, headers=header)
+
+    json_resul = json.loads(result.content)
+
+    if(len(json_resul) == 0):
+        print("No clan founded")
+        return None
+
+    return json_resul
+
+if __name__ == '__main__':
+
+    player_tag = "#U8RRR8LY"
+    clan_tag = "#2GCR8GL2P"
+
+    # result = searh_for_player(API_TOKEN,player_tag)
+
+    # with open(f"player{player_tag}Information.json","w", encoding='utf-8') as f:
+    #     json.dump(result, f, ensure_ascii=False, indent=4)
+
+    result = search_for_clans(API_TOKEN, clan_tag)
     
-    json_result = json.loads(result.content)
-
-    if(len(json_result) == 0):
-        print("No artist founded .")
+    for a in result['memberList']:
         
-        return None
-    
-    return json_result
+        player_tag = a['tag']
 
-if __name__ =='__main__':
+        result = searh_for_player(API_TOKEN,player_tag)
 
-    token = get_token()
+        with open(f"player{player_tag}Information.json","w", encoding='utf-8') as f:
+            json.dump(result, f, ensure_ascii=False, indent=4)
 
-    result = search_for_artist(token, "Wiz khalifa",'')
-    
-    with open(f"Searched_artist_{result['artists']['items'][0]["name"]}.json", "w",encoding='utf-8') as f:
+    with open(f"clan{clan_tag}Information.json","w", encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=4)
-
-    artist_id = result['artists']["items"][0]['id']
-  
-    artist_information = get_artist(artist_id, token)
-
-    with open(f"Artist_{artist_information['name']}_information.json", "w", encoding='utf-8') as f:
-        json.dump(artist_information, f, ensure_ascii=False, indent=4)
