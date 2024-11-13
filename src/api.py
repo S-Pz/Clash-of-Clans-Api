@@ -119,7 +119,7 @@ def clan_capitalraid(token, clan_tag):
 
     result = requests.get(url, headers=header)
 
-    json_resul = json.loads(resutl.content)
+    json_resul = json.loads(result.content)
 
     if(len(json, result) == 0):
         print("No clan season founded")
@@ -127,27 +127,51 @@ def clan_capitalraid(token, clan_tag):
     
     return json_resul
 
+def search_clan(token, name="", locationId=32000038):
+
+    if name == "":
+        url = f"https://api.clashofclans.com/v1/clans?locationId={locationId}"
+    else:
+        url = f"https://api.clashofclans.com/v1/clans?name={name}&locationId={locationId}"
+
+    header = get_auth_header(token)
+
+    result = requests.get(url, headers=header)
+    
+    json_result = json.loads(result.content)
+
+    if len(json_result) == 0:
+        print("Not found")
+        return None
+    
+    return json_result
+
 if __name__ == '__main__':
 
-    player_tag = "#U8RRR8LY"
-    clan_tag = "#2GCR8GL2P"
+    # player_tag = "#U8RRR8LY"
+    # clan_tag = "#2GCR8GL2P"
+    # locationId = 32000038 #Br
 
-    # result = searh_for_player(API_TOKEN,player_tag)
+    # # result = searh_for_player(API_TOKEN,player_tag)
 
-    # with open(f"player{player_tag}Information.json","w", encoding='utf-8') as f:
+    # # with open(f"player{player_tag}Information.json","w", encoding='utf-8') as f:
+    # #     json.dump(result, f, ensure_ascii=False, indent=4)
+
+    # result = search_for_clans(API_TOKEN, clan_tag)
+    
+    # for a in result['memberList']:
+        
+    #     player_tag = a['tag']
+
+    #     result = searh_for_player(API_TOKEN,player_tag)
+
+    #     with open(f"player{player_tag}Information.json","w", encoding='utf-8') as f:
+    #         json.dump(result, f, ensure_ascii=False, indent=4)
+
+    # with open(f"clan{clan_tag}Information.json","w", encoding='utf-8') as f:
     #     json.dump(result, f, ensure_ascii=False, indent=4)
 
-    result = search_for_clans(API_TOKEN, clan_tag)
+    result= search_clan(API_TOKEN)
     
-    for a in result['memberList']:
-        
-        player_tag = a['tag']
-
-        result = searh_for_player(API_TOKEN,player_tag)
-
-        with open(f"player{player_tag}Information.json","w", encoding='utf-8') as f:
-            json.dump(result, f, ensure_ascii=False, indent=4)
-
-    with open(f"clan{clan_tag}Information.json","w", encoding='utf-8') as f:
+    with open("clans.json","w", encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=4)
-    
