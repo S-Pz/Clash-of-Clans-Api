@@ -14,7 +14,7 @@ def get_auth_header(token):
         "Authorization": "Bearer " + token
     }
 
-def searh_for_player(token, player_tag):
+def search_for_player(token, player_tag):
 
     encoded_player_tag = quote(player_tag) if player_tag else ""
 
@@ -26,7 +26,7 @@ def searh_for_player(token, player_tag):
     json_resul = json.loads(result.content)
 
     if(len(json_resul) == 0):
-        print("No player founded")
+        print("No player found")
         return None
 
     return json_resul
@@ -161,6 +161,7 @@ if __name__ == '__main__':
     #     json.dump(result, f, ensure_ascii=False, indent=4)
     
     clans_info:list=[]
+    player_info_list:list=[]
 
     clans = search_clan(API_TOKEN)
     
@@ -180,32 +181,33 @@ if __name__ == '__main__':
         }
         clans_info.append(clans_data)
 
-        player = search_for_clans(API_TOKEN, clans_data['tag'])
-
-        for a in player['memberList']:
+        clan_details = search_for_clans(API_TOKEN, clans_data['tag'])
         
-            player_tag = a['tag']
-            player_info = searh_for_player(API_TOKEN,player_tag)
+        if 'memberList' in clan_details:
+            #print(clan_details)
+            for player in clan_details['memberList']:
+                player_tag = player['tag']
 
-            for player in player_info:
+                player_info = search_for_player(API_TOKEN, player_tag)
 
-                player_data = {
-                    'tag': player['tag'],
-                    'name':player['name'],
-                    'townHallLevel':player['townHallLevel'],
-                    'warStars':player['warStars'],
-                    'attackWins':player['attackWins'],
-                    'defenseWins': player['defenseWins'],
-                    'donations': player['donations'],
-                    'donationsReceived': player['donationsReceived'],
-                    'clan_tag': player['clan']['tag'],
-                    'clan_name':player['clan']['name']
-                }
-
+                if player_info:
+                    player_data = {
+                        'tag': player_info['tag'],
+                        'name':player_info['name'],
+                        'townHallLevel':player_info['townHallLevel'],
+                        'warStars':player_info['warStars'],
+                        'attackWins':player_info['attackWins'],
+                        'defenseWins': player_info['defenseWins'],
+                        'donations': player_info['donations'],
+                        'donationsReceived': player_info['donationsReceived'],
+                        'clan_tag': player_info['clan']['tag'],
+                        'clan_name':player_info['clan']['name']
+                    }
+                    print(player_data)
+                    player_info_list.append(player_data)
+            
     with open("clans_info.json","w", encoding='utf-8') as f:
         json.dump(clans_info, f, ensure_ascii=False, indent=4)
-    
-    
-    
-    # 
-    
+
+    with open("players_info.json","w", encoding='utf-8') as f:
+        json.dump(player_info_list, f, ensure_ascii=False, indent=4)
