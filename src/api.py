@@ -127,12 +127,12 @@ def clan_capitalraid(token, clan_tag):
     
     return json_resul
 
-def search_clan(token, name="", locationId=32000038):
+def search_clan(token:str, name:str="", locationId:int=32000038, limit:int=500):
 
     if name == "":
-        url = f"https://api.clashofclans.com/v1/clans?locationId={locationId}"
+        url = f"https://api.clashofclans.com/v1/clans?locationId={locationId}&limit={limit}"
     else:
-        url = f"https://api.clashofclans.com/v1/clans?name={name}&locationId={locationId}"
+        url = f"https://api.clashofclans.com/v1/clans?name={name}&locationId={locationId}&limit={limit}"
 
     header = get_auth_header(token)
 
@@ -145,6 +145,22 @@ def search_clan(token, name="", locationId=32000038):
         return None
     
     return json_result
+
+def clans_member_list(token,  clan_tag):
+
+    encoded_clan_tag = quote(clan_tag) if clan_tag else ""
+    
+    url = f'https://api.clashofclans.com/v1/clans/{encoded_clan_tag}/members'
+    header = get_auth_header(token)
+
+    result = requests.get(url, headers=header)
+    json_resul = json.loads(result.content)
+
+    if(len(json, result) == 0):
+        print("No clan season founded")
+        return None
+    
+    return json_resul
 
 if __name__ == '__main__':
 
@@ -163,8 +179,9 @@ if __name__ == '__main__':
     clans_info:list=[]
     player_info_list:list=[]
 
-    clans = search_clan(API_TOKEN)
-    
+    clans = search_clan(API_TOKEN,limit=500)
+    cont:int = 0
+
     for info in clans['items']:
         
         clans_data = {
@@ -183,28 +200,35 @@ if __name__ == '__main__':
 
         clan_details = search_for_clans(API_TOKEN, clans_data['tag'])
         
+        #clans_member = clans_member_list(API_TOKEN,clans_data['tag'])
+        
         if 'memberList' in clan_details:
             #print(clan_details)
             for player in clan_details['memberList']:
                 player_tag = player['tag']
 
                 player_info = search_for_player(API_TOKEN, player_tag)
+                cont+=1
 
-                if player_info:
+                print(cont)
+                
+                if player_info and 'tag' in player_info:
                     player_data = {
                         'tag': player_info['tag'],
-                        'name':player_info['name'],
-                        'townHallLevel':player_info['townHallLevel'],
-                        'warStars':player_info['warStars'],
-                        'attackWins':player_info['attackWins'],
+                        'name': player_info['name'],
+                        'townHallLevel': player_info['townHallLevel'],
+                        'warStars': player_info['warStars'],
+                        'attackWins': player_info['attackWins'],
                         'defenseWins': player_info['defenseWins'],
                         'donations': player_info['donations'],
                         'donationsReceived': player_info['donationsReceived'],
                         'clan_tag': player_info['clan']['tag'],
-                        'clan_name':player_info['clan']['name']
+                        'clan_name': player_info['clan']['name']
                     }
                     print(player_data)
                     player_info_list.append(player_data)
+                else:
+                    print("Incomplete player data or player not found:", player_info)
             
     with open("clans_info.json","w", encoding='utf-8') as f:
         json.dump(clans_info, f, ensure_ascii=False, indent=4)
