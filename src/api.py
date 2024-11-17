@@ -180,7 +180,7 @@ if __name__ == '__main__':
     player_info_list:list = []
     clan_info_warlog:list = []
     
-    clans = search_clan(API_TOKEN,limit=300)
+    clans = search_clan(API_TOKEN,limit=100)
 
     cont:int = 0
 
@@ -203,28 +203,31 @@ if __name__ == '__main__':
         clan_details = search_for_clans(API_TOKEN, clans_data['tag'])
         war_log = search_for_clan_war_log(API_TOKEN, clans_data['tag'])
         
-        for war in war_log['items']:
+        if 'items' in war_log:
+            for war in war_log['items']:
 
-            war_logs = {
-                'result': war['result'],
-                'teamSize': war['teamSize'],
-                'attacksPerMember': war['attacksPerMember'],
-                'clanTag': war['clan']['tag'],
-                'clanName': war['clan']['name'],
-                "clanLevel": war['clan']['clanLevel'],
-                "attacks": war['clan']['attacks'],
-                "stars": war['clan']['stars'],
-                "destructionPercentage": war['clan']['destructionPercentage'],
-                "expEarned": war['clan']['expEarned'],
-                'opponentTag': war['opponent']['Tag'],
-                'opponentName':  war['opponent']['name'],
-                'opponentLevel': war['opponent']['clanLevel'],
-                'opponentStar': war['opponent']['stars'],
-                'opponentDestructionPercentage': war['opponent']['destructionPercentage']
-            }
-            print(clan_info_warlog)
-            clan_info_warlog.append(war_logs)
+                war_logs = {
+                    'result': war.get('result', 'Unknown'),
+                    'teamSize': war.get('teamSize', 0),
+                    'attacksPerMember': war.get('attacksPerMember', 0),
+                    'clanTag': war['clan'].get('tag', 'Unknown'),
+                    'clanName': war['clan'].get('name', 'Unknown'),
+                    'clanLevel': war['clan'].get('clanLevel', 0),
+                    'attacks': war['clan'].get('attacks', 0),
+                    'stars': war['clan'].get('stars', 0),
+                    'destructionPercentage': war['clan'].get('destructionPercentage', 0.0),
+                    'expEarned': war['clan'].get('expEarned', 0),
+                    'opponentTag': war['opponent'].get('tag', 'No Tag'),  # Verifica se a tag existe
+                    'opponentName': war['opponent'].get('name', 'Unknown'),
+                    'opponentLevel': war['opponent'].get('clanLevel', 0),
+                    'opponentStar': war['opponent'].get('stars', 0),
+                    'opponentDestructionPercentage': war['opponent'].get('destructionPercentage', 0.0)
+                }
 
+                clan_info_warlog.append(war_logs)
+        else:
+            print(f"No war log items found for clan {clans_data['tag']}: {war_log}")
+        
         if 'memberList' in clan_details:
             #print(clan_details)
             for player in clan_details['memberList']:
