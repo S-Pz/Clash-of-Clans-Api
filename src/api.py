@@ -176,10 +176,12 @@ if __name__ == '__main__':
     # with open(f"clan{clan_tag}Information.json","w", encoding='utf-8') as f:
     #     json.dump(result, f, ensure_ascii=False, indent=4)
     
-    clans_info:list=[]
-    player_info_list:list=[]
+    clans_info:list = []
+    player_info_list:list = []
+    clan_info_warlog:list = []
+    
+    clans = search_clan(API_TOKEN,limit=300)
 
-    clans = search_clan(API_TOKEN,limit=500)
     cont:int = 0
 
     for info in clans['items']:
@@ -199,9 +201,30 @@ if __name__ == '__main__':
         clans_info.append(clans_data)
 
         clan_details = search_for_clans(API_TOKEN, clans_data['tag'])
+        war_log = search_for_clan_war_log(API_TOKEN, clans_data['tag'])
         
-        #clans_member = clans_member_list(API_TOKEN,clans_data['tag'])
-        
+        for war in war_log['items']:
+
+            war_logs = {
+                'result': war['result'],
+                'teamSize': war['teamSize'],
+                'attacksPerMember': war['attacksPerMember'],
+                'clanTag': war['clan']['tag'],
+                'clanName': war['clan']['name'],
+                "clanLevel": war['clan']['clanLevel'],
+                "attacks": war['clan']['attacks'],
+                "stars": war['clan']['stars'],
+                "destructionPercentage": war['clan']['destructionPercentage'],
+                "expEarned": war['clan']['expEarned'],
+                'opponentTag': war['opponent']['Tag'],
+                'opponentName':  war['opponent']['name'],
+                'opponentLevel': war['opponent']['clanLevel'],
+                'opponentStar': war['opponent']['stars'],
+                'opponentDestructionPercentage': war['opponent']['destructionPercentage']
+            }
+            print(clan_info_warlog)
+            clan_info_warlog.append(war_logs)
+
         if 'memberList' in clan_details:
             #print(clan_details)
             for player in clan_details['memberList']:
@@ -225,7 +248,7 @@ if __name__ == '__main__':
                         'clan_tag': player_info['clan']['tag'],
                         'clan_name': player_info['clan']['name']
                     }
-                    print(player_data)
+                    # print(player_data)
                     player_info_list.append(player_data)
                 else:
                     print("Incomplete player data or player not found:", player_info)
@@ -235,3 +258,6 @@ if __name__ == '__main__':
 
     with open("players_info.json","w", encoding='utf-8') as f:
         json.dump(player_info_list, f, ensure_ascii=False, indent=4)
+
+    with open("war_log_info.json","w", encoding='utf-8') as f:
+        json.dump(clan_info_warlog, f, ensure_ascii=False, indent=4)
